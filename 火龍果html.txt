@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台灣現挽 - 火龍果煎蛋互動遊戲</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        
+        .bounce {
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+        
+        .wiggle {
+            animation: wiggle 0.5s ease-in-out;
+        }
+        
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-5deg); }
+            75% { transform: rotate(5deg); }
+        }
+        
+        .cooking {
+            animation: cooking 1s ease-in-out infinite alternate;
+        }
+        
+        @keyframes cooking {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+        
+        .sparkle {
+            animation: sparkle 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes sparkle {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-green-100 via-yellow-50 to-amber-100 min-h-screen">
+    <!-- 品牌標題 -->
+    <div class="text-center py-6">
+        <h1 class="text-4xl font-bold text-green-800 mb-2">🌾 台灣現挽</h1>
+        <p class="text-lg text-green-700 mb-2">讓台灣的好慢慢挽進日常</p>
+        <p class="text-sm text-amber-700 mb-3">🥚 紅寶石歐姆蛋互動遊戲 💎</p>
+        <a href="https://www.taiwan-fruit.com/" target="_blank" rel="noopener noreferrer" class="inline-block bg-gradient-to-r from-green-600 to-amber-600 text-white px-6 py-2 rounded-full hover:from-green-700 hover:to-amber-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
+            🌐 點官網逛逛
+        </a>
+    </div>
+
+    <!-- 遊戲區域 -->
+    <div class="max-w-4xl mx-auto px-4">
+        <!-- 分數顯示 -->
+        <div class="bg-amber-50 border-2 border-green-200 rounded-2xl shadow-lg p-4 mb-6 text-center">
+            <div class="flex justify-around items-center">
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-green-700" id="score">0</div>
+                    <div class="text-sm text-amber-700">🌾 美味分數</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-amber-700" id="level">1</div>
+                    <div class="text-sm text-amber-700">👨‍🌾 料理等級</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-yellow-700" id="eggs">5</div>
+                    <div class="text-sm text-amber-700">🥚 剩餘雞蛋</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 平底鍋區域 -->
+        <div class="bg-gradient-to-br from-gray-800 to-black rounded-full w-80 h-80 mx-auto relative shadow-2xl mb-8 border-4 border-gray-700" id="pan">
+            <!-- 平底鍋把手 -->
+            <div class="absolute -right-16 top-1/2 transform -translate-y-1/2 w-20 h-6 bg-gray-900 rounded-r-full border-2 border-gray-700"></div>
+            
+            <!-- 煎蛋區域 -->
+            <div class="absolute inset-8 rounded-full bg-gradient-to-br from-yellow-200 to-yellow-400 opacity-0 transition-all duration-500" id="eggBase"></div>
+            
+            <!-- 火龍果片 -->
+            <div class="absolute inset-0 flex items-center justify-center" id="dragonFruitContainer"></div>
+            
+            <!-- 煎蛋效果 -->
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none" id="cookingEffects"></div>
+        </div>
+
+        <!-- 控制按鈕 -->
+        <div class="flex flex-wrap justify-center gap-3 mb-6">
+            <button id="addVeggiesBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200 border-2 border-green-400">
+                🧅🌶️ 炒三色丁
+            </button>
+            <button id="addEggBtn" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-4 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed border-2 border-amber-500">
+                🥚 加入雞蛋
+            </button>
+            <button id="addDragonFruitBtn" class="bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-4 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200 border-2 border-pink-500">
+                💎 加入紅寶石
+            </button>
+            <button id="cookBtn" class="bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-4 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed border-2 border-orange-500" disabled>
+                🔥 開始煎煮
+            </button>
+        </div>
+
+        <!-- 成果展示 -->
+        <div class="bg-amber-50 border-2 border-green-200 rounded-2xl shadow-lg p-6 text-center" id="resultArea" style="display: none;">
+            <h3 class="text-2xl font-bold text-green-800 mb-4">🎉 豐收完成！</h3>
+            <div class="text-6xl mb-4" id="resultEmoji">🍳</div>
+            <p class="text-lg text-amber-800 mb-4" id="resultText">美味的紅寶石歐姆蛋完成了！</p>
+            <button id="nextRoundBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200 border-2 border-green-500">
+                🌱 下一輪
+            </button>
+        </div>
+
+        <!-- 火龍果皮營養知識 -->
+        <div class="bg-pink-50 border-2 border-pink-200 rounded-2xl shadow-lg p-6 mt-6">
+            <h3 class="text-xl font-bold text-pink-800 mb-3">💎 紅寶石歐姆蛋作法</h3>
+            <div class="text-pink-800 space-y-2 text-sm">
+                <p>• <strong>花青素含量是胡蘿蔔的十倍！</strong> 💪</p>
+                <p>• 在人體中可維持 <strong>75個小時</strong> 的活性 ⏰</p>
+                <p>• 抗氧化、防衰老、抗自由基 ✨</p>
+                <p>• 預防老人痴呆症、養顏美容、降血壓 💖</p>
+                <div class="mt-4 p-3 bg-pink-100 rounded-lg">
+                    <p class="font-semibold text-pink-900 mb-2">🍳 料理步驟：</p>
+                    <p class="text-xs">1. 先炒洋蔥丁、甜椒丁至微軟</p>
+                    <p class="text-xs">2. 加入紅寶石火龍果皮一起炒</p>
+                    <p class="text-xs">3. 加入蛋液，加些許鹽巴調味，攪拌均勻即可</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 遊戲說明 -->
+        <div class="bg-amber-50 border-2 border-green-200 rounded-2xl shadow-lg p-6 mt-6">
+            <h3 class="text-xl font-bold text-green-800 mb-3">👨‍🍳 預習小廚師 - 實際操作不慌亂</h3>
+            <div class="text-amber-800 space-y-2">
+                <p>• <strong>步驟1：</strong>點擊「炒三色丁」先炒洋蔥丁、甜椒丁至微軟 🧅🌶️</p>
+                <p>• <strong>步驟2：</strong>點擊「加入紅寶石」增添營養價值 💎</p>
+                <p>• <strong>步驟3：</strong>點擊「加入雞蛋」加入蛋液一起炒 🥚</p>
+                <p>• <strong>步驟4：</strong>點擊「開始煎煮」完成料理 🔥</p>
+                <p>• 每次成功料理都會獲得分數和提升等級！🌱</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let gameState = {
+            score: 0,
+            level: 1,
+            eggs: 5,
+            hasVeggies: false,
+            hasEgg: false,
+            hasDragonFruit: false,
+            cooking: false
+        };
+
+        const scoreEl = document.getElementById('score');
+        const levelEl = document.getElementById('level');
+        const eggsEl = document.getElementById('eggs');
+        const panEl = document.getElementById('pan');
+        const eggBaseEl = document.getElementById('eggBase');
+        const dragonFruitContainer = document.getElementById('dragonFruitContainer');
+        const cookingEffects = document.getElementById('cookingEffects');
+        const addVeggiesBtn = document.getElementById('addVeggiesBtn');
+        const addEggBtn = document.getElementById('addEggBtn');
+        const addDragonFruitBtn = document.getElementById('addDragonFruitBtn');
+        const cookBtn = document.getElementById('cookBtn');
+        const resultArea = document.getElementById('resultArea');
+        const resultEmoji = document.getElementById('resultEmoji');
+        const resultText = document.getElementById('resultText');
+        const nextRoundBtn = document.getElementById('nextRoundBtn');
+
+        function updateDisplay() {
+            scoreEl.textContent = gameState.score;
+            levelEl.textContent = gameState.level;
+            eggsEl.textContent = gameState.eggs;
+            
+            addVeggiesBtn.disabled = gameState.hasVeggies || gameState.cooking;
+            addDragonFruitBtn.disabled = !gameState.hasVeggies || gameState.hasDragonFruit || gameState.cooking;
+            addEggBtn.disabled = gameState.eggs <= 0 || gameState.hasEgg || gameState.cooking || !gameState.hasDragonFruit;
+            cookBtn.disabled = !gameState.hasVeggies || !gameState.hasEgg || gameState.cooking;
+        }
+
+        function addVeggies() {
+            if (gameState.hasVeggies || gameState.cooking) return;
+            
+            gameState.hasVeggies = true;
+            
+            // 創建三色丁視覺效果
+            const veggies = document.createElement('div');
+            veggies.className = 'absolute inset-0 flex items-center justify-center';
+            veggies.innerHTML = `
+                <div class="grid grid-cols-4 gap-1 opacity-70">
+                    <div class="w-6 h-6 bg-gradient-to-br from-white-200 to-white-400 rounded-sm flex items-center justify-center text-xs">🧅</div>
+                    <div class="w-6 h-6 bg-gradient-to-br from-red-300 to-red-500 rounded-sm flex items-center justify-center text-xs">🌶️</div>
+                    <div class="w-6 h-6 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-sm flex items-center justify-center text-xs">🌶️</div>
+                    <div class="w-6 h-6 bg-gradient-to-br from-white-200 to-white-400 rounded-sm flex items-center justify-center text-xs">🧅</div>
+                    <div class="w-6 h-6 bg-gradient-to-br from-red-300 to-red-500 rounded-sm flex items-center justify-center text-xs">🌶️</div>
+                    <div class="w-6 h-6 bg-gradient-to-br from-white-200 to-white-400 rounded-sm flex items-center justify-center text-xs">🧅</div>
+                    <div class="w-6 h-6 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-sm flex items-center justify-center text-xs">🌶️</div>
+                    <div class="w-6 h-6 bg-gradient-to-br from-red-300 to-red-500 rounded-sm flex items-center justify-center text-xs">🌶️</div>
+                </div>
+            `;
+            veggies.classList.add('wiggle');
+            
+            dragonFruitContainer.appendChild(veggies);
+            
+            setTimeout(() => {
+                veggies.classList.remove('wiggle');
+            }, 500);
+            
+            updateDisplay();
+        }
+
+        function addEgg() {
+            if (gameState.eggs <= 0 || gameState.hasEgg || !gameState.hasDragonFruit) return;
+            
+            gameState.eggs--;
+            gameState.hasEgg = true;
+            
+            // 顯示煎蛋底
+            eggBaseEl.style.opacity = '1';
+            eggBaseEl.classList.add('wiggle');
+            
+            // 添加煎蛋視覺效果
+            setTimeout(() => {
+                eggBaseEl.classList.remove('wiggle');
+            }, 500);
+            
+            updateDisplay();
+        }
+
+        function addDragonFruit() {
+            if (!gameState.hasVeggies || gameState.hasDragonFruit || gameState.cooking) return;
+            
+            gameState.hasDragonFruit = true;
+            
+            // 創建火龍果片
+            const dragonFruit = document.createElement('div');
+            dragonFruit.className = 'absolute inset-0 flex items-center justify-center';
+            dragonFruit.innerHTML = `
+                <div class="grid grid-cols-3 gap-2 opacity-80">
+                    <div class="w-8 h-8 bg-gradient-to-br from-pink-300 to-pink-500 rounded-full flex items-center justify-center text-xs">🌸</div>
+                    <div class="w-8 h-8 bg-gradient-to-br from-pink-300 to-pink-500 rounded-full flex items-center justify-center text-xs">🌸</div>
+                    <div class="w-8 h-8 bg-gradient-to-br from-pink-300 to-pink-500 rounded-full flex items-center justify-center text-xs">🌸</div>
+                    <div class="w-8 h-8 bg-gradient-to-br from-pink-300 to-pink-500 rounded-full flex items-center justify-center text-xs">🌸</div>
+                    <div class="w-8 h-8 bg-gradient-to-br from-pink-300 to-pink-500 rounded-full flex items-center justify-center text-xs">🌸</div>
+                    <div class="w-8 h-8 bg-gradient-to-br from-pink-300 to-pink-500 rounded-full flex items-center justify-center text-xs">🌸</div>
+                </div>
+            `;
+            dragonFruit.classList.add('bounce');
+            
+            dragonFruitContainer.appendChild(dragonFruit);
+            
+            updateDisplay();
+        }
+
+        function startCooking() {
+            if (!gameState.hasEgg || gameState.cooking) return;
+            
+            gameState.cooking = true;
+            
+            // 添加煎煮效果
+            panEl.classList.add('cooking');
+            
+            // 添加火花效果
+            const sparkles = document.createElement('div');
+            sparkles.className = 'absolute inset-0 pointer-events-none';
+            sparkles.innerHTML = `
+                <div class="absolute top-4 left-8 text-yellow-400 sparkle">✨</div>
+                <div class="absolute top-8 right-6 text-yellow-400 sparkle">✨</div>
+                <div class="absolute bottom-6 left-6 text-yellow-400 sparkle">✨</div>
+                <div class="absolute bottom-4 right-8 text-yellow-400 sparkle">✨</div>
+            `;
+            cookingEffects.appendChild(sparkles);
+            
+            updateDisplay();
+            
+            // 煎煮完成
+            setTimeout(() => {
+                finishCooking();
+            }, 2000);
+        }
+
+        function finishCooking() {
+            gameState.cooking = false;
+            panEl.classList.remove('cooking');
+            
+            // 計算分數
+            let points = 10;
+            if (gameState.hasVeggies) {
+                points += 10; // 三色丁加分
+            }
+            if (gameState.hasDragonFruit) {
+                points += 15; // 火龍果皮加分
+            }
+            points *= gameState.level;
+            
+            gameState.score += points;
+            
+            // 升級檢查
+            if (gameState.score >= gameState.level * 50) {
+                gameState.level++;
+            }
+            
+            // 顯示結果
+            showResult(points);
+            updateDisplay();
+        }
+
+        function showResult(points) {
+            const emojis = ['🍳', '😋', '🎉', '⭐', '🏆'];
+            const messages = [
+                `獲得 ${points} 分！`,
+                '台灣現挽的營養紅寶石歐姆蛋！',
+                '完美的料理技巧！滿滿花青素！',
+                '色香味俱全！抗氧化滿分！',
+                '大師級的作品！健康又美味！'
+            ];
+            
+            resultEmoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            resultText.textContent = messages[Math.floor(Math.random() * messages.length)];
+            resultArea.style.display = 'block';
+            
+            // 滾動到結果區域
+            resultArea.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function nextRound() {
+            // 重置遊戲狀態
+            gameState.hasVeggies = false;
+            gameState.hasEgg = false;
+            gameState.hasDragonFruit = false;
+            gameState.cooking = false;
+            
+            // 清理視覺效果
+            eggBaseEl.style.opacity = '0';
+            dragonFruitContainer.innerHTML = '';
+            cookingEffects.innerHTML = '';
+            resultArea.style.display = 'none';
+            
+            // 補充雞蛋
+            if (gameState.eggs <= 0) {
+                gameState.eggs = 5;
+            }
+            
+            updateDisplay();
+            
+            // 滾動回遊戲區域
+            panEl.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 事件監聽器
+        addVeggiesBtn.addEventListener('click', addVeggies);
+        addEggBtn.addEventListener('click', addEgg);
+        addDragonFruitBtn.addEventListener('click', addDragonFruit);
+        cookBtn.addEventListener('click', startCooking);
+        nextRoundBtn.addEventListener('click', nextRound);
+
+        // 初始化
+        updateDisplay();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'983ea8e567244a99',t:'MTc1ODY3ODkyOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
